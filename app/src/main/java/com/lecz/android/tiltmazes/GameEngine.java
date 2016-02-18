@@ -43,11 +43,8 @@ import android.os.Message;
 import android.os.Vibrator;
 import android.widget.TextView;
 
-import com.amplitude.api.Amplitude;
-import com.amplitude.api.Identify;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.segment.analytics.Analytics;
+import com.segment.analytics.Properties;
 
 public class GameEngine {
     private SensorManager mSensorManager;
@@ -111,7 +108,7 @@ public class GameEngine {
     };
 
 
-    public GameEngine(Context context) {
+    public GameEngine(final Context context) {
         // Open maze database
         mDB = new TiltMazesDBAdapter(context).open();
         mCurrentMap = mDB.getFirstUnsolved();
@@ -175,27 +172,11 @@ public class GameEngine {
                             // Solved!
                             mDB.updateMaze(mCurrentMap, mStepCount);
 
-                            // Update the user properties with number of mazes completed.
-                            JSONObject userProperties = new JSONObject();
-                            try {
-                                userProperties.put("Mazes Completed", mDB.solvedMazes().getCount());
-                            } catch (JSONException exception) {
-                            }
-                            Amplitude.getInstance().setUserProperties(userProperties);
-
-                            // Track the maze completion in amplitude
-                            JSONObject eventProperties = new JSONObject();
-                            try {
-                                eventProperties.put("Maze", mMap.getName());
-                                eventProperties.put("Steps", mStepCount);
-                            } catch (JSONException exception) {
-                            }
-
-                            Amplitude.getInstance().logEvent("Maze Completed", eventProperties);
-                            Amplitude.getInstance().identify(new Identify().add("total steps", mStepCount));
-                            Amplitude.getInstance().identify(new Identify().add("mazes completed", 1));
-                            Long tsLong = System.currentTimeMillis() / 1000;
-                            Amplitude.getInstance().identify(new Identify().setOnce("first maze completed time", tsLong));
+                            // track the maze completion in Segment/Amplitude with some event properties
+                            Analytics.with(context).track(
+                                "Maze Completed",
+                                new Properties().putValue("total steps", mStepCount)
+                            );
 
                             if (mDB.unsolvedMazes().getCount() == 0) {
                                 mAllMazesSolvedDialog.setMessage(

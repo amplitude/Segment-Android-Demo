@@ -21,9 +21,12 @@ android {
 
 dependencies {
     compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.segment.analytics.android:analytics:4.+'
     if (amplitudeUseLocal.toBoolean()) {
-        compile files('libs/amplitude-android-' + amplitudeVersion + '-with-dependencies.jar')
+        // need local Segment-Amplitude android compile
     } else {
-        compile 'com.amplitude:android-sdk:' + amplitudeVersion
+        compile('com.segment.analytics.android.integrations:amplitude:1.0.0') {
+            transitive = true
+        }
     }
 }

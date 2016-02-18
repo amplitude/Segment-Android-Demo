@@ -38,7 +38,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -50,7 +49,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.amplitude.api.Amplitude;
+import com.segment.analytics.Analytics;
+import com.segment.analytics.Traits;
+import com.segment.analytics.android.integrations.amplitude.AmplitudeIntegration;
 
 public class TiltMazesActivity extends Activity {
     protected PowerManager.WakeLock mWakeLock;
@@ -81,9 +82,13 @@ public class TiltMazesActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Amplitude.getInstance().initialize(this, "2bc81f5feed9ab046f7fbaf6c40fe1b6");
-        Amplitude.getInstance().enableForegroundTracking(getApplication()).trackSessionEvents(true);
-        Amplitude.getInstance().setLogLevel(Log.VERBOSE);
+        // initializing Segment SDK with Amplitude client-side bundled
+        Analytics analytics = new Analytics.Builder(this, "HxJmgRDOsFdFi0tpzimutpXdhxCSfwBf")
+                .use(AmplitudeIntegration.FACTORY).build();
+        Analytics.setSingletonInstance(analytics);
+
+        // use Segment's identify to set a userId with some properties (traits)
+        Analytics.with(this).identify("bob@gmail.com", new Traits().putName("Bob"), null);
 
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "TiltMazes");
@@ -291,7 +296,8 @@ public class TiltMazesActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        Amplitude.getInstance().logEvent("app resumed");
+        // logging app resumed event to Segment/Amplitude
+        Analytics.with(this).track("app resumed");
 
         mGameEngine.registerListener();
         mWakeLock.acquire();
