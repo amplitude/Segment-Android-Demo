@@ -50,8 +50,11 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.segment.analytics.Analytics;
+import com.segment.analytics.Properties;
 import com.segment.analytics.Traits;
 import com.segment.analytics.android.integrations.amplitude.AmplitudeIntegration;
+
+import org.json.JSONArray;
 
 public class TiltMazesActivity extends Activity {
     protected PowerManager.WakeLock mWakeLock;
@@ -89,6 +92,10 @@ public class TiltMazesActivity extends Activity {
 
         // use Segment's identify to set a userId with some properties (traits)
         Analytics.with(this).identify("bob@gmail.com", new Traits().putName("Bob"), null);
+        Analytics.with(this).track(
+            "Create app",
+            new Properties().putValue("experiments", new JSONArray().put("experiment1").put("experiment3"))
+        );
 
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "TiltMazes");
